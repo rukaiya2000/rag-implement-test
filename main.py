@@ -3,8 +3,12 @@ import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
+from dotenv import load_dotenv
 from openai import OpenAI
+import openai
+
+load_dotenv()
+
 
 DOCUMENTS = [
     "Ragas are melodic frameworks in Indian classical music.",
@@ -286,10 +290,10 @@ class ExampleRAG:
         self.traces.append(
             TraceEvent(
                 event_type="llm_call",
-                component="openai_api",
+                component="navigator_api",
                 data={
                     "operation": "generate_response",
-                    "model": "gpt-4o",
+                    "model": "gpt-oss-120b",
                     "query": query,
                     "prompt_length": len(prompt),
                     "context_length": len(context),
@@ -300,7 +304,7 @@ class ExampleRAG:
 
         try:
             response = self.llm_client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": prompt},
@@ -312,14 +316,14 @@ class ExampleRAG:
             self.traces.append(
                 TraceEvent(
                     event_type="llm_response",
-                    component="openai_api",
+                    component="navigator_api",
                     data={
                         "operation": "generate_response",
                         "response_length": len(response_text),
                         "usage": (
                             response.usage.model_dump() if response.usage else None
                         ),
-                        "model": "gpt-4o",
+                        "model": "gpt-oss-120b",
                     },
                 )
             )
@@ -330,7 +334,7 @@ class ExampleRAG:
             self.traces.append(
                 TraceEvent(
                     event_type="error",
-                    component="openai_api",
+                    component="navigator_api",
                     data={"operation": "generate_response", "error": str(e)},
                 )
             )
@@ -457,15 +461,19 @@ def default_rag_client(llm_client, logdir: str = "logs") -> ExampleRAG:
 
 if __name__ == "__main__":
     try:
-        api_key = os.environ["OPENAI_API_KEY"]
+        api_key = os.environ["NAVIGATOR_API_KEY"]
     except KeyError:
-        print("Error: OPENAI_API_KEY environment variable is not set.")
-        print("Please set your OpenAI API key:")
-        print("export OPENAI_API_KEY='your_openai_api_key'")
+        print("Error: NAVIGATOR_API_KEY environment variable is not set.")
+        print("Please set your Navigator API key:")
+        print("export NAVIGATOR_API_KEY='your_navigator_api_key'")
         exit(1)
 
     # Initialize RAG system with tracing enabled
-    llm = OpenAI(api_key=api_key)
+    llm = OpenAI(
+    api_key=api_key,
+    base_url="https://api.ai.it.ufl.edu",
+)
+
     r = SimpleKeywordRetriever()
     rag_client = ExampleRAG(llm_client=llm, retriever=r, logdir="logs")
 
