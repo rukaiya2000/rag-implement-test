@@ -247,6 +247,7 @@ class ExampleRAG:
                 data={
                     "operation": "retrieve_complete",
                     "num_retrieved": len(retrieved_docs),
+                    "retrieved_docs": [doc["content"] for doc in retrieved_docs],
                     "scores": [doc["similarity_score"] for doc in retrieved_docs],
                     "document_ids": [doc["document_id"] for doc in retrieved_docs],
                 },
