@@ -16,6 +16,8 @@ DOCUMENTS = [
     "Ragas are used to evoke specific emotions in the listener.",
     "The performance of a raga involves improvisation within a set structure.",
     "Ragas can be performed on various instruments or sung vocally.",
+    "Rukaiya is studying ragas to understand their structure and emotional impact.",
+    "Rukaiya has basic understanding of ragas but is looking to deepen her knowledge through a RAG application.",
 ]
 
 
@@ -41,16 +43,14 @@ class BaseRetriever:
         """Store the documents"""
         self.documents = documents
 
-    def get_top_k(self, query: str, k: int = 3) -> List[tuple]:
-        """Retrieve top-k most relevant documents for the query."""
-        raise NotImplementedError("Subclasses should implement this method.")
-
 
 class SimpleKeywordRetriever(BaseRetriever):
     """Ultra-simple keyword matching retriever"""
 
+
     def __init__(self):
         super().__init__()
+        
 
     def _count_keyword_matches(self, query: str, document: str) -> int:
         """Count how many query words appear in the document"""
@@ -281,12 +281,12 @@ class ExampleRAG:
         context_parts = []
         for i, doc in enumerate(retrieved_docs, 1):
             context_parts.append(f"Document {i}:\n{doc['content']}")
-
+        print(f"Context for generation:\n{context_parts}")
         context = "\n\n".join(context_parts)
-
+        print(f"Final context:\n{context}")
         # Generate response using LLM client
         prompt = self.system_prompt.format(query=query, context=context)
-
+        print(f"Prompt for LLM:\n{prompt}")
         self.traces.append(
             TraceEvent(
                 event_type="llm_call",
@@ -296,6 +296,7 @@ class ExampleRAG:
                     "model": "gpt-oss-120b",
                     "query": query,
                     "prompt_length": len(prompt),
+                    "context": context,
                     "context_length": len(context),
                     "num_context_docs": len(retrieved_docs),
                 },
@@ -311,6 +312,8 @@ class ExampleRAG:
                 ],
             )
 
+            # print(f"LLM response raw:\n{response}")
+
             response_text = response.choices[0].message.content.strip()
 
             self.traces.append(
@@ -320,6 +323,7 @@ class ExampleRAG:
                     data={
                         "operation": "generate_response",
                         "response_length": len(response_text),
+                        "response": response_text,
                         "usage": (
                             response.usage.model_dump() if response.usage else None
                         ),
@@ -471,8 +475,8 @@ if __name__ == "__main__":
     # Initialize RAG system with tracing enabled
     llm = OpenAI(
     api_key=api_key,
-    base_url="https://api.ai.it.ufl.edu",
-)
+    base_url="https://api.ai.it.ufl.edu"
+    )
 
     r = SimpleKeywordRetriever()
     rag_client = ExampleRAG(llm_client=llm, retriever=r, logdir="logs")
@@ -481,7 +485,7 @@ if __name__ == "__main__":
     rag_client.add_documents(DOCUMENTS)
 
     # Run query with tracing
-    query = "What is Ragas"
+    query = "What is Sanya's rag knowledge?"
     print(f"Query: {query}")
     response = rag_client.query(query, top_k=3)
 
