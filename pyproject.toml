@@ -1,0 +1,12 @@
+[project]
+name = "rag-implement-test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dataclasses>=0.8",
+    "datetime>=6.0",
+    "openai>=2.24.0",
+    "typing>=3.10.0.0",
+]
